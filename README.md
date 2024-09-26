@@ -94,7 +94,7 @@ After the server VM is rebooted, run `sudo vagrant ssh server`  and `sudo -i` to
 
 ## Lustre Client Installation
 
-After the client VM is rebooted, run `sudo vagrant ssh client`  and `sudo -i` to get into the VM.
+Run `sudo vagrant ssh client`  and `sudo -i` to get into the VM.
 
 1. Enable `codeready-builder` yum repo with below commands:
 
@@ -116,17 +116,18 @@ After the client VM is rebooted, run `sudo vagrant ssh client`  and `sudo -i` to
 
 3. Run `dnf --enablerepo=lustre-client install lustre-client-dkms lustre-client` to install lustre.
 
-4. Run `lsmod | grep lustre` to check the installation
+4. Run `lsmod | grep lustre` to check the installation, if there is no lustre modules, try `modprobe lustre`
 
 5. Add `<the IP of eth1 on Server VM> server` to `/etc/hosts`
 
 ## Mount FS on Client
 
-After the client VM is rebooted, run `sudo vagrant ssh client`  and `sudo -i` to get into the VM.
+Run `sudo vagrant ssh client`  and `sudo -i` to get into the VM.
 
-1. Make the mount point folder with `mkdir /users`
-2. Run `mount -t lustre server:/users /users` to mount the `users` filesystem to `/users` folder
-3. Verify lustre filesystem:
+1. Run `modprobe lustre` to load the Lustre kernel modules
+2. Make the mount point folder with `mkdir /users`
+3. Run `mount -t lustre server:/users /users` to mount the `users` filesystem to `/users` folder
+4. Verify lustre filesystem:
 
     ```bash
     # cd /users
