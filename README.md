@@ -16,13 +16,13 @@ brew services start libvirt
 ## Lustre VMs
 
 1. Clone this repository
-2. Get into the repo folder, and create a disk file with below commands:
+2. Get into the repo folder, and create a disk file with below command:
 
     ```
     qemu-img create server-disk1.img 20G
     ```
 
-3. Run `sudo vagrant up --provider=qemu` to boot up the two VMs
+3. Run `sudo vagrant up --provider=qemu` to boot up the two VMs, the server VM has a 20G raw disk.
 4. Run `sudo vagrant status` to check the VM status
 
 ## VMs Preperations
@@ -60,17 +60,17 @@ After the server VM is rebooted, run `sudo vagrant ssh server`  and `sudo -i` to
 1. Follow the section `Install ZFS packages` in [blog](https://metebalci.com/blog/lustre-2.15.4-on-rhel-8.9-and-ubuntu-22.04/) to install ZFS.
 2. Follow the section `Install Lustre servers with ZFS support` in [blog](https://metebalci.com/blog/lustre-2.15.4-on-rhel-8.9-and-ubuntu-22.04/) to install Lustre.
 
-Note: because the RHEL version installed in the VMs are 8.8, please use below Lustre yum repo config to install lustre-2.15.3.
+    Note: because the RHEL version installed in the VMs are 8.8, please use below Lustre yum repo config to install lustre-2.15.3.
 
-```
-[root@server ~]# cat /etc/yum.repos.d/lustre.repo
-[lustre-server]
-name=lustre-server
-baseurl=https://downloads.whamcloud.com/public/lustre/lustre-2.15.3/el8.8/server/
-exclude=*debuginfo*
-enabled=0
-gpgcheck=0
-```
+    ```
+    [root@server ~]# cat /etc/yum.repos.d/lustre.repo
+    [lustre-server]
+    name=lustre-server
+    baseurl=https://downloads.whamcloud.com/public/lustre/lustre-2.15.3/el8.8/server/
+    exclude=*debuginfo*
+    enabled=0
+    gpgcheck=0
+    ```
 
 3. Run below commands create the filesystem. Take the section `Configure Lustre file systems` in [blog](https://metebalci.com/blog/lustre-2.15.4-on-rhel-8.9-and-ubuntu-22.04/) as a reference, the main difference is that the MDT and OST have smaller size, becuase the disk size in the VM is only 20G. Download the `lustre-utils.sh` from [here](https://raw.githubusercontent.com/metebalci/lustre-utils.sh/refs/heads/main/lustre-utils.sh)
 
@@ -126,3 +126,27 @@ After the client VM is rebooted, run `sudo vagrant ssh client`  and `sudo -i` to
 
 1. Make the mount point folder with `mkdir /users`
 2. Run `mount -t lustre server:/users /users` to mount the `users` filesystem to `/users` folder
+3. Verify lustre filesystem:
+
+    ```bash
+    # cd /users
+
+    # lfs df -h
+    UUID                       bytes        Used   Available Use% Mounted on
+    users-MDT0000_UUID        815.8M        3.1M      810.6M   1% /users[MDT:0]
+    users-OST0000_UUID          2.6G      660.0M        2.0G  25% /users[OST:0]
+    users-OST0001_UUID          2.6G        3.0M        2.6G   1% /users[OST:1]
+
+    filesystem_summary:         5.2G      663.0M        4.6G  13% /users
+
+    # truncate -s 100M test
+    # lfs getstripe test
+    test
+    lmm_stripe_count:  1
+    lmm_stripe_size:   1048576
+    lmm_pattern:       raid0
+    lmm_layout_gen:    0
+    lmm_stripe_offset: 1
+        obdidx		 objid		 objid		 group
+            1	        4	        0x4	         0
+    ```
