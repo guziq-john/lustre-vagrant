@@ -32,6 +32,8 @@ brew services start libvirt
 
     ```
     $ subscription-manager register  # you must have a RedHat developer account, which is free.
+      sudo subscription-manager register --username=<email> --password=<password>
+
     $ systemctl disable firewalld
     $ systemctl stop firewalld
     $ systemctl mask firewalld
