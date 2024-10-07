@@ -94,14 +94,16 @@ After the server VM is rebooted, run `sudo vagrant ssh server`  and `sudo -i` to
 
     ```
     $ wget https://raw.githubusercontent.com/metebalci/lustre-utils.sh/refs/heads/main/lustre-utils.sh
+
+    $ git clone https://github.com/metebalci/lustre-utils.sh
     
     $ ./lustre-utils.sh create_vg lustre /dev/vdb
 
     $ ./lustre-utils.sh create_mgt zfs
 
-    $ ./lustre-utils.sh create_fs users zfs 1 1 zfs 3 2
+    $ ./lustre-utils.sh create_fs users zfs 1 2 zfs 3 2
 
-    $ ./lustre-utils.sh create_fs projects zfs 1 1 zfs 2 2
+    $ ./lustre-utils.sh create_fs projects zfs 1 2 zfs 2 2
 
     $ ./lustre-utils.sh start_mgs
 
@@ -111,7 +113,22 @@ After the server VM is rebooted, run `sudo vagrant ssh server`  and `sudo -i` to
 
     $ ./lustre-utils.sh status
     ```
-
+```
+[root@server ~]# lvs lustre
+  LV         VG     Attr       LSize Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  mgt        lustre -wi-ao---- 1.00g                                                    
+  users_mdt0 lustre -wi-ao---- 2.00g                                                    
+  users_mdt1 lustre -wi-ao---- 2.00g                                                    
+  users_ost0 lustre -wi-ao---- 3.00g                                                    
+  users_ost1 lustre -wi-ao---- 3.00g                                                    
+[root@server ~]# zpool list
+NAME         SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+mgt          960M  2.91M   957M        -         -     0%     0%  1.00x    ONLINE  -
+users_mdt0  1.88G  3.24M  1.87G        -         -     0%     0%  1.00x    ONLINE  -
+users_mdt1  1.88G  3.12M  1.87G        -         -     0%     0%  1.00x    ONLINE  -
+users_ost0  2.75G  3.57M  2.75G        -         -     0%     0%  1.00x    ONLINE  -
+users_ost1  2.75G  3.57M  2.75G        -         -     0%     0%  1.00x    ONLINE  -
+```
 ## Lustre Client Installation
 
 Run `sudo vagrant ssh client`  and `sudo -i` to get into the VM.
@@ -148,26 +165,23 @@ Run `sudo vagrant ssh client`  and `sudo -i` to get into the VM.
 2. Make the mount point folder with `mkdir /users`
 3. Run `mount -t lustre server:/users /users` to mount the `users` filesystem to `/users` folder
 4. Verify lustre filesystem:
+```
+[root@client ~]# lfs df -h
+UUID                       bytes        Used   Available Use% Mounted on
+users-MDT0000_UUID          1.7G        3.0M        1.7G   1% /users[MDT:0]
+users-MDT0001_UUID          1.7G        2.9M        1.7G   1% /users[MDT:1]
+users-OST0000_UUID          2.6G        3.0M        2.6G   1% /users[OST:0]
+users-OST0001_UUID          2.6G        3.0M        2.6G   1% /users[OST:1]
 
-    ```bash
-    # cd /users
-
-    # lfs df -h
-    UUID                       bytes        Used   Available Use% Mounted on
-    users-MDT0000_UUID        815.8M        3.1M      810.6M   1% /users[MDT:0]
-    users-OST0000_UUID          2.6G      660.0M        2.0G  25% /users[OST:0]
-    users-OST0001_UUID          2.6G        3.0M        2.6G   1% /users[OST:1]
-
-    filesystem_summary:         5.2G      663.0M        4.6G  13% /users
-
-    # truncate -s 100M test
-    # lfs getstripe test
-    test
-    lmm_stripe_count:  1
-    lmm_stripe_size:   1048576
-    lmm_pattern:       raid0
-    lmm_layout_gen:    0
-    lmm_stripe_offset: 1
-        obdidx		 objid		 objid		 group
-            1	        4	        0x4	         0
-    ```
+filesystem_summary:         5.2G        6.0M        5.2G   1% /users
+[root@client users]# truncate -s 100M test
+[root@client users]# lfs getstripe test
+test
+lmm_stripe_count:  1
+lmm_stripe_size:   1048576
+lmm_pattern:       raid0
+lmm_layout_gen:    0
+lmm_stripe_offset: 0
+	obdidx		 objid		 objid		 group
+	     0	             2	          0x2	             0
+```
