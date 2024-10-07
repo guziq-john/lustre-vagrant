@@ -59,17 +59,21 @@ After the server VM is rebooted, run `sudo vagrant ssh server`  and `sudo -i` to
 
 1. Follow the section `Install ZFS packages` in [blog](https://metebalci.com/blog/lustre-2.15.4-on-rhel-8.9-and-ubuntu-22.04/) to install ZFS.
     Install ZFS packages
-    RHEL does not by default support DKMS. epel-release package is required for that but it is not available from RedHat repositories. Install epel-release from Fedora project:
+    RHEL does not by default support DKMS. epel-release package is required for that but it is not available from RedHat repositories.
+    Install epel-release from Fedora project:
+```
     $ subscription-manager repos --enable codeready-builder-for-rhel-8-$(arch)-rpms
     $ dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+```
     Then, add the ZFS repository:
-
+```
     $ dnf install https://zfsonlinux.org/epel/zfs-release-2-3$(rpm --eval "%{dist}").noarch.rpm
+```
     Then, install kernel-devel and zfs in DKMS style packages.
-
+```
     $ dnf install kernel-devel
     $ dnf install zfs
-
+```
 3. Follow the section `Install Lustre servers with ZFS support` in [blog](https://metebalci.com/blog/lustre-2.15.4-on-rhel-8.9-and-ubuntu-22.04/) to install Lustre.
 
     Note: because the RHEL version installed in the VMs are 8.8, please use below Lustre yum repo config to install lustre-2.15.3.
@@ -87,6 +91,8 @@ After the server VM is rebooted, run `sudo vagrant ssh server`  and `sudo -i` to
 4. Run below commands create the filesystem. Take the section `Configure Lustre file systems` in [blog](https://metebalci.com/blog/lustre-2.15.4-on-rhel-8.9-and-ubuntu-22.04/) as a reference, the main difference is that the MDT and OST have smaller size, becuase the disk size in the VM is only 20G. Download the `lustre-utils.sh` from [here](https://raw.githubusercontent.com/metebalci/lustre-utils.sh/refs/heads/main/lustre-utils.sh)
 
     ```
+    $ wget https://raw.githubusercontent.com/metebalci/lustre-utils.sh/refs/heads/main/lustre-utils.sh
+    
     $ ./lustre-utils.sh create_vg lustre /dev/vdb
 
     $ ./lustre-utils.sh create_mgt zfs
