@@ -185,3 +185,9 @@ lmm_stripe_offset: 0
 	obdidx		 objid		 objid		 group
 	     0	             2	          0x2	             0
 ```
+
+## shutdown the VM instances
+```
+sudo vagrant halt
+sudo brew services stop libvirt
+```
